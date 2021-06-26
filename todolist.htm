@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<style>
+    *{
+        padding: 0;
+        margin:0;
+        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .main{
+        transform: translateX(34%);
+        margin-top: 80px;
+        background-image:  linear-gradient(#F86457, #F86457, #F35A6B);
+        width: 60%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    
+    }
+    .container{
+        width: 500px;
+        
+        background-color: #fff;
+        margin:20px 0;
+        border-radius:6px;
+    }
+    li{
+        list-style: none;
+    }
+    .container__time h1{
+        text-align:right;
+        color: #F5888E;
+        font-size:20px;
+        padding:0 20px;
+        font-style:inherit;
+    }
+    .container__title h1 {
+        color: #F5888E;
+    }
+    .container__function {
+        margin:10px 10px;
+    }
+    .container__function .fill-input {
+
+            padding: 12px;
+            width: 70%;
+            border: 2px solid rgb(243, 241, 241);
+
+    }
+    #createBtn{
+        padding:2px 20px;
+        text-align:center;
+        transform: translate(10px,5px);
+        font-size:30px;
+        cursor: pointer;
+        border: none;
+        outline: none;
+    }
+    #createBtn:hover{
+    background-color:cornflowerblue;
+    }
+    .container__item{
+        text-align:left;
+        padding:10px 32px ;
+    }
+    .list-task div{
+        display:flex;
+        margin: 20px 0;
+    
+
+    }
+    #list-task div:hover {
+            background-color: rgb(221, 215, 215);
+           cursor: pointer;
+        }   
+        #list-task div:hover input {
+            transform:translateX(0px);
+          
+    
+        }      
+        #list-task div{
+           background-color:#E0E8F5;
+           margin:12px 0;
+           padding: 0 10px;
+        }
+        #list-task div{
+                
+            transition: width 0.5s, height 0.5s, transform 0.5s;
+        }
+        #list-task div input{
+            transform:translateX(1000px);
+            transition: width 0.5s, height 0.5s, transform 0.5s;
+            
+        }
+        .line {
+         text-decoration: line-through;
+         color:rgb(167, 161, 161);
+        }
+         #list-task div input:hover{
+             background-color:#F96558;
+         }
+        @keyframes roll-in-right{0%{transform:translateX(800px) rotate(540deg);opacity:0}100%{transform:translateX(0) rotate(0deg);opacity:1}}
+</style>
+<body>
+   <div class="main">
+            <div class="container">
+                <div class="container__title">
+                    <h1>To Do</h1>
+
+                </div>
+                <div class="container__time">
+                    <h1></h1>
+                </div>
+
+                <div class="container__function">
+                    <input class="fill-input" type="text" name="name" placeholder="Fill Task">
+                    <input type="submit" id="createBtn" value="&#43;">  </input>
+                </div>
+                
+                <div class="container__item">
+                    <h2 style="margin-bottom:16px">List Task</h2>
+                    <ul id="list-task">
+
+                    </ul>   
+                </div>
+                
+
+            </div>
+   </div>
+    <script>
+         var $= document.querySelector.bind(document);
+         var API= "http://localhost:3000/courses";
+         function getTime(){
+             var today = new Date();
+             var dd = today.getDate();
+        var mm = today.getMonth() + 1;
+  
+        var yyyy = today.getFullYear();
+        if (dd < 10) {
+            dd = '0' + dd;
+        }
+        if (mm < 10) {
+            mm = '0' + mm;
+        }
+        var today = dd + '/' + mm + '/' + yyyy;
+             $(`.container__time > h1 `).innerHTML = today;
+         }
+      
+      function start(){
+            getTime();
+            getTask(function(Tasks){
+
+                renderTask(Tasks);
+             handleCreateTask(Tasks);
+            });
+
+
+           
+      }
+      start();
+
+      function getTask(callback){
+        fetch(API)
+        .then(function(response){
+           return response.json();
+        })
+        .then(callback)
+        
+        
+      
+    }
+   
+    function doneTasks(){
+   
+   document.querySelector(`.task-title_${Task.id}`).style.textDecoration = "line-through";
+
+    }
+
+
+
+    
+    function renderTask(Tasks){
+        var listTask= $("#list-task");
+         var htmls = Tasks.map(function(Task){
+            return `
+            
+                 <div style="display:flex; width:100%; justify-content: space-between;padding:0px 0" class="task-item_${Task.id}" onclick='document.querySelector(".task-title_${Task.id}").classList.toggle("line") '>
+                    <h6 class="task-title_${Task.id}" style="font-size:14px;cursor:pointer;padding: 12px 10px"> ${Task.name} <h6>
+                    <input style="padding:14px 20px;cursor:pointer ;  border: none; outline: none;" type="button" value="X" onclick="handleDeleteTask(${Task.id})">                                  
+                </div>
+            `
+
+         })
+         var htmlStyle=function(){
+                return  `<style> 
+                     #list-task div:hover{
+                            background-color:red;
+                     }        
+                </style>`
+         } 
+           
+         listTask.innerHTML = htmls.join('');
+    }
+   
+    function handleCreateTask() {
+        var createBtn = $("#createBtn");
+
+   
+        createBtn.onclick = function(){
+            var name= $('input[name= "name"]').value;
+            var formData= {
+                name : name,
+           
+            }
+
+            createTask(formData,function(){
+        getTask(renderTask)
+        $('input[name= "name"]').value="";
+    });
+        }
+
+   
+   
+    } 
+     function createTask(data,callback){
+        var options = {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: {'Content-Type': 'application/json'}
+        }
+        fetch(API,options)
+        .then(function(response){
+            response.json();
+        })
+        .then(callback);
+    }
+
+    
+     function handleDeleteTask(id){
+        var options = {
+            method: 'DELETE',
+          
+            headers: {'Content-Type': 'application/json'}
+        }
+        fetch(API + "/" + id,options)
+        .then(function(response){
+            response.json();
+        })
+        .then(function(itemTask){
+            itemTask = $(`.task-item_${id}`);
+            if(itemTask){
+                itemTask.remove();
+            }
+        })
+     }    
+    </script>
+</body>
+
+</html>
